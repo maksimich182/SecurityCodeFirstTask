@@ -4,27 +4,27 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 
-class MainActivity : AppCompatActivity(), IBottomPanel {
-    var bottomPannel: IBottomPanel? = null
+class MainActivity : AppCompatActivity() {
+    var bottomPanelFragment: BottomPanelFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        bottomPannel = supportFragmentManager.findFragmentById(R.id.bottomPanelFragment) as IBottomPanel
-    }
+        bottomPanelFragment = supportFragmentManager.findFragmentById(R.id.bottomPanelFragment) as BottomPanelFragment
+        bottomPanelFragment?.bottomPanelClickListener = object : IBottomPanelClickListener{
+            override fun onSaveClick(view: View) {
+                Toast.makeText(this@MainActivity, "Кнопка нажата", Toast.LENGTH_SHORT).show()
+            }
 
+            override fun onOpenClick(view: View) {
+                Toast.makeText(this@MainActivity, "Кнопка нажата", Toast.LENGTH_SHORT).show()
+            }
 
-    override fun onSaveClick(view: View) {
-        bottomPannel?.onSaveClick(view)
-    }
+            override fun onCreateClick(view: View) {
+                Toast.makeText(this@MainActivity, "Кнопка нажата", Toast.LENGTH_SHORT).show()
+            }
 
-    override fun onOpenClick(view: View) {
-        bottomPannel?.onOpenClick(view)
-    }
-
-    override fun onCreateClick(view: View) {
-        bottomPannel?.onCreateClick(view)
+        }
     }
 }
