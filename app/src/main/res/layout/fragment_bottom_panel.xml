@@ -6,6 +6,7 @@
     android:background="@color/black">
 
     <EditText
+        android:id="@+id/file_name_edit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:hint="Имя файла"

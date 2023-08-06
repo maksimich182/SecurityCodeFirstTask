@@ -5,26 +5,12 @@
     android:layout_height="match_parent">
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/editTextFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:name="com.example.securitycodefirsttask.EditTextFragment"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/bottomPanelFragment"/>
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/bottomPanelFragment"
+        android:id="@+id/main_fragment"
+        android:name="com.example.securitycodefirsttask.MainFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:name="com.example.securitycodefirsttask.BottomPanelFragment"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"/>
-
-
-
+        android:layout_height="match_parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,9 +10,9 @@ import android.widget.Button
 
 class BottomPanelFragment : Fragment(R.layout.fragment_bottom_panel) {
     var bottomPanelClickListener: IBottomPanelClickListener? = null
-    var saveBtn: Button? = null
-    var openBtn: Button? = null
-    var createBtn: Button? = null
+    private var saveBtn: Button? = null
+    private var openBtn: Button? = null
+    private var createBtn: Button? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
