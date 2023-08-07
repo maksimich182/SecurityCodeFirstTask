@@ -3,6 +3,7 @@ package com.example.securitycodefirsttask
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.os.Environment
 import android.os.Environment.getExternalStorageState
@@ -13,19 +14,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 
 class MainFragment : Fragment() {
     private lateinit var saveFileWithResult: ActivityResultLauncher<Intent>
     private lateinit var openFileWithResult: ActivityResultLauncher<Intent>
 
-    private var newFileContent: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,9 +37,27 @@ class MainFragment : Fragment() {
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
-                saveDataToFile(result.data?.data!!, newFileContent)
+                saveDataToFile(result.data?.data!!, view?.findViewById<EditText>(R.id.edit_text)?.text.toString())
                 Toast
-                    .makeText(context, result.data?.data.toString(), Toast.LENGTH_LONG)
+                    .makeText(context, "Файл сохранен", Toast.LENGTH_LONG)
+                    .show()
+            }
+            else{
+                Toast
+                    .makeText(context, "Не удалось сохранить файл", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+
+        openFileWithResult = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                view?.findViewById<TextView>(R.id.text_view)?.text = getDataFromFile(result.data?.data!!)
+            }
+            else{
+                Toast
+                    .makeText(context, "Не удалось открыть файл", Toast.LENGTH_LONG)
                     .show()
             }
         }
@@ -53,9 +74,9 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val saveBtn = view.findViewById<Button>(R.id.save_btn)
         val openBtn = view.findViewById<Button>(R.id.open_btn)
+        val editText = view.findViewById<EditText>(R.id.edit_text)
 
         saveBtn.setOnClickListener {
-            newFileContent = view.findViewById<EditText>(R.id.edit_text).text.toString()
             val intent = Intent().setAction(Intent.ACTION_CREATE_DOCUMENT)
             intent.type = "text/plain"
             saveFileWithResult.launch(intent)
@@ -63,8 +84,11 @@ class MainFragment : Fragment() {
 
 
         openBtn.setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.type = "text/plain"
             openFileWithResult.launch(intent)
+            view.findViewById<EditText>(R.id.edit_text)?.visibility = View.GONE
+            view.findViewById<TextView>(R.id.text_view)?.visibility = View.VISIBLE
         }
 
 
@@ -78,6 +102,16 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun getDataFromFile(uri: Uri) : String {
+        val inputStream = context?.contentResolver?.openInputStream(uri)
+        val reader = BufferedReader(InputStreamReader(inputStream))
+        val stringBuilder = StringBuilder()
+        var line: String?
+        while(reader.readLine().also{line = it} != null){
+            stringBuilder.append(line)
+        }
+        return stringBuilder.toString()
+    }
 
 
 }
