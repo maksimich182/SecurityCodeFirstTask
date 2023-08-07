@@ -8,10 +8,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.view.animation.Animation
+import android.view.animation.LinearInterpolator
+import android.view.animation.RotateAnimation
+import android.widget.*
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +27,7 @@ class MainFragment : Fragment() {
 
     private lateinit var textView: TextView
     private lateinit var editText: EditText
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,13 +36,22 @@ class MainFragment : Fragment() {
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
-                saveDataToFile(result.data?.data!!, editText.text.toString())
-                Toast
-                    .makeText(context, "Файл сохранен", Toast.LENGTH_LONG)
-                    .show()
+                lifecycleScope.launch {
+                    startLoadingAnimation()
+                    lifecycleScope.launch {
+                        saveDataToFile(
+                            result.data?.data!!,
+                            editText.text.toString()
+                        )
+                    }.join()
+                    stopLoadingAnimation()
+                    Toast
+                        .makeText(context, "Файл сохранен", Toast.LENGTH_SHORT)
+                        .show()
+                }
             } else {
                 Toast
-                    .makeText(context, "Не удалось сохранить файл", Toast.LENGTH_LONG)
+                    .makeText(context, "Не удалось сохранить файл", Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -49,21 +59,20 @@ class MainFragment : Fragment() {
         openFileWithResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
-            lifecycleScope.launch {
-                if (result.resultCode == Activity.RESULT_OK) {
-                    Log.d("Thread", Thread.currentThread().name)
 
-                    textView.text = getDataFromFile(result.data?.data!!)
-
-                    delay(10000L)
-                    Log.d("Thread", Thread.currentThread().name)
-                } else {
-                    Toast
-                        .makeText(context, "Не удалось открыть файл", Toast.LENGTH_LONG)
-                        .show()
+            if (result.resultCode == Activity.RESULT_OK) {
+                lifecycleScope.launch {
+                    startLoadingAnimation()
+                    lifecycleScope.launch {
+                        textView.text = getDataFromFile(result.data?.data!!)
+                    }.join()
+                    stopLoadingAnimation()
                 }
+            } else {
+                Toast
+                    .makeText(context, "Не удалось открыть файл", Toast.LENGTH_SHORT)
+                    .show()
             }
-
         }
     }
 
@@ -80,13 +89,13 @@ class MainFragment : Fragment() {
         val openBtn = view.findViewById<Button>(R.id.open_btn)
         editText = view.findViewById<EditText>(R.id.edit_text)
         textView = view.findViewById<TextView>(R.id.text_view)
+        progressBar = view.findViewById(R.id.progressBar)
 
         saveBtn.setOnClickListener {
             val intent = Intent().setAction(Intent.ACTION_CREATE_DOCUMENT)
             intent.type = "text/plain"
             saveFileWithResult.launch(intent)
         }
-
 
         openBtn.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
@@ -95,21 +104,20 @@ class MainFragment : Fragment() {
             editText.visibility = View.GONE
             textView.visibility = View.VISIBLE
         }
-
-
     }
 
-    private fun saveDataToFile(uri: Uri, data: String) {
-        val outputStream = context?.contentResolver?.openOutputStream(uri)
-        outputStream?.use { stream ->
-            stream.write(data.toByteArray())
-            stream.close()
+    private suspend fun saveDataToFile(uri: Uri, data: String) = withContext(Dispatchers.IO) {
+        launch {
+            val outputStream = context?.contentResolver?.openOutputStream(uri)
+            outputStream?.use { stream ->
+                stream.write(data.toByteArray())
+                stream.close()
+            }
         }
     }
 
     private suspend fun getDataFromFile(uri: Uri): String = withContext(Dispatchers.IO) {
         val data: Deferred<String> = async {
-            Log.d("Thread", Thread.currentThread().name)
             val inputStream = context?.contentResolver?.openInputStream(uri)
             val reader = BufferedReader(InputStreamReader(inputStream))
             val stringBuilder = StringBuilder()
@@ -122,5 +130,26 @@ class MainFragment : Fragment() {
         data.await()
     }
 
+    private fun startLoadingAnimation() {
+        progressBar.visibility = View.VISIBLE
 
+        val rotateAnimation = RotateAnimation(
+            0f,
+            360f,
+            Animation.RELATIVE_TO_SELF,
+            0.5f,
+            Animation.RELATIVE_TO_SELF,
+            0.5f
+        )
+        rotateAnimation.interpolator = LinearInterpolator()
+        rotateAnimation.repeatCount = Animation.INFINITE
+        rotateAnimation.duration = 1000
+
+        progressBar.startAnimation(rotateAnimation)
+    }
+
+    private fun stopLoadingAnimation() {
+        progressBar.clearAnimation()
+        progressBar.visibility = View.GONE
+    }
 }
