@@ -28,7 +28,7 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/bottom_panel"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_panel"
@@ -38,37 +38,28 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent">
 
-        <EditText
-            android:id="@+id/file_name_edit"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="5dp"
-            android:layout_marginVertical="10dp"
-            android:background="@color/white"
-            android:hint="Имя файла"
-            android:inputType="text"
-            android:textSize="26sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/save_btn" />
-
         <Button
             android:id="@+id/save_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="S"
             android:textSize="26sp"
+
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@+id/open_btn" />
 
         <Button
             android:id="@+id/open_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="O"
             android:onClick="onOpenClick"
+            android:text="O"
             android:textSize="26sp"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/save_btn"
             app:layout_constraintRight_toLeftOf="@+id/create_btn" />
 
         <Button
@@ -77,6 +68,7 @@
             android:layout_height="wrap_content"
             android:text="C"
             android:textSize="26sp"
+            app:layout_constraintLeft_toRightOf="@+id/open_btn"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent" />
 
