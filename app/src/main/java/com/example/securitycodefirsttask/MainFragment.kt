@@ -29,6 +29,8 @@ class MainFragment : Fragment() {
     private lateinit var saveFileWithResult: ActivityResultLauncher<Intent>
     private lateinit var openFileWithResult: ActivityResultLauncher<Intent>
 
+    private lateinit var textView: TextView
+    private lateinit var editText: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,7 @@ class MainFragment : Fragment() {
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
-                saveDataToFile(result.data?.data!!, view?.findViewById<EditText>(R.id.edit_text)?.text.toString())
+                saveDataToFile(result.data?.data!!, editText.text.toString())
                 Toast
                     .makeText(context, "Файл сохранен", Toast.LENGTH_LONG)
                     .show()
@@ -53,7 +55,7 @@ class MainFragment : Fragment() {
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
-                view?.findViewById<TextView>(R.id.text_view)?.text = getDataFromFile(result.data?.data!!)
+                textView.text = getDataFromFile(result.data?.data!!)
             }
             else{
                 Toast
@@ -74,7 +76,8 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val saveBtn = view.findViewById<Button>(R.id.save_btn)
         val openBtn = view.findViewById<Button>(R.id.open_btn)
-        val editText = view.findViewById<EditText>(R.id.edit_text)
+        editText = view.findViewById<EditText>(R.id.edit_text)
+        textView = view.findViewById<TextView>(R.id.text_view)
 
         saveBtn.setOnClickListener {
             val intent = Intent().setAction(Intent.ACTION_CREATE_DOCUMENT)
@@ -87,8 +90,8 @@ class MainFragment : Fragment() {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.type = "text/plain"
             openFileWithResult.launch(intent)
-            view.findViewById<EditText>(R.id.edit_text)?.visibility = View.GONE
-            view.findViewById<TextView>(R.id.text_view)?.visibility = View.VISIBLE
+            editText.visibility = View.GONE
+            textView.visibility = View.VISIBLE
         }
 
 
