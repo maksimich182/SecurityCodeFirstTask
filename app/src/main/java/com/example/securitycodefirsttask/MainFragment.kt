@@ -3,12 +3,8 @@ package com.example.securitycodefirsttask
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Bundle
-import android.os.Environment
-import android.os.Environment.getExternalStorageState
-import android.provider.DocumentsContract
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,10 +15,10 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.*
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
 
 class MainFragment : Fragment() {
@@ -43,8 +39,7 @@ class MainFragment : Fragment() {
                 Toast
                     .makeText(context, "Файл сохранен", Toast.LENGTH_LONG)
                     .show()
-            }
-            else{
+            } else {
                 Toast
                     .makeText(context, "Не удалось сохранить файл", Toast.LENGTH_LONG)
                     .show()
@@ -54,14 +49,21 @@ class MainFragment : Fragment() {
         openFileWithResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                textView.text = getDataFromFile(result.data?.data!!)
+            lifecycleScope.launch {
+                if (result.resultCode == Activity.RESULT_OK) {
+                    Log.d("Thread", Thread.currentThread().name)
+
+                    textView.text = getDataFromFile(result.data?.data!!)
+
+                    delay(10000L)
+                    Log.d("Thread", Thread.currentThread().name)
+                } else {
+                    Toast
+                        .makeText(context, "Не удалось открыть файл", Toast.LENGTH_LONG)
+                        .show()
+                }
             }
-            else{
-                Toast
-                    .makeText(context, "Не удалось открыть файл", Toast.LENGTH_LONG)
-                    .show()
-            }
+
         }
     }
 
@@ -105,15 +107,19 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun getDataFromFile(uri: Uri) : String {
-        val inputStream = context?.contentResolver?.openInputStream(uri)
-        val reader = BufferedReader(InputStreamReader(inputStream))
-        val stringBuilder = StringBuilder()
-        var line: String?
-        while(reader.readLine().also{line = it} != null){
-            stringBuilder.append(line)
+    private suspend fun getDataFromFile(uri: Uri): String = withContext(Dispatchers.IO) {
+        val data: Deferred<String> = async {
+            Log.d("Thread", Thread.currentThread().name)
+            val inputStream = context?.contentResolver?.openInputStream(uri)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val stringBuilder = StringBuilder()
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                stringBuilder.append(line)
+            }
+            stringBuilder.toString()
         }
-        return stringBuilder.toString()
+        data.await()
     }
 
 
