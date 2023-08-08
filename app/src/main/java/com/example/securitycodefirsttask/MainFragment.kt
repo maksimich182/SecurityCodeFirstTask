@@ -1,10 +1,10 @@
 package com.example.securitycodefirsttask
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -87,6 +87,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val saveBtn = view.findViewById<Button>(R.id.save_btn)
         val openBtn = view.findViewById<Button>(R.id.open_btn)
+        val createBtn = view.findViewById<Button>(R.id.create_btn)
         editText = view.findViewById<EditText>(R.id.edit_text)
         textView = view.findViewById<TextView>(R.id.text_view)
         progressBar = view.findViewById(R.id.progressBar)
@@ -104,6 +105,20 @@ class MainFragment : Fragment() {
             editText.visibility = View.GONE
             textView.visibility = View.VISIBLE
         }
+
+       createBtn.setOnClickListener{
+           if(editText.text.toString() != ""){
+               AlertDialog.Builder(context)
+                   .setTitle("Внимание!")
+                   .setMessage("Текущий файл не будет сохранен")
+                   .setPositiveButton("Продолжить"){_,_ ->
+                       editText.setText("")
+                   }
+                   .setNegativeButton("Отмена"){_,_ ->}
+                   .create()
+                   .show()
+           }
+       }
     }
 
     private suspend fun saveDataToFile(uri: Uri, data: String) = withContext(Dispatchers.IO) {
