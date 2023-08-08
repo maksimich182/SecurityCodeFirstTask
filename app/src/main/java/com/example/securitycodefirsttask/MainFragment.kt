@@ -28,6 +28,7 @@ class MainFragment : Fragment() {
     private lateinit var textView: TextView
     private lateinit var editText: EditText
     private lateinit var progressBar: ProgressBar
+    private lateinit var scrollTextView: ScrollView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +91,7 @@ class MainFragment : Fragment() {
         val createBtn = view.findViewById<Button>(R.id.create_btn)
         editText = view.findViewById<EditText>(R.id.edit_text)
         textView = view.findViewById<TextView>(R.id.text_view)
+        scrollTextView = view.findViewById<ScrollView>(R.id.scroll_text_view)
         progressBar = view.findViewById(R.id.progressBar)
 
         saveBtn.setOnClickListener {
@@ -103,6 +105,7 @@ class MainFragment : Fragment() {
             intent.type = "text/plain"
             openFileWithResult.launch(intent)
             editText.visibility = View.GONE
+            scrollTextView.visibility = View.VISIBLE
             textView.visibility = View.VISIBLE
         }
 
@@ -112,6 +115,8 @@ class MainFragment : Fragment() {
                    .setTitle("Внимание!")
                    .setMessage("Текущий файл не будет сохранен")
                    .setPositiveButton("Продолжить"){_,_ ->
+                       scrollTextView.visibility = View.GONE
+                       editText.visibility = View.VISIBLE
                        editText.setText("")
                    }
                    .setNegativeButton("Отмена"){_,_ ->}
