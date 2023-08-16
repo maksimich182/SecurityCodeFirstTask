@@ -16,7 +16,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -30,22 +30,35 @@ class MainFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var scrollTextView: ScrollView
 
+    private lateinit var fileSystemWorkVM: FileSystemWorkVM
+    private lateinit var statusFileProcess: LiveData<Boolean>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        fileSystemWorkVM = ViewModelProvider(this).get<FileSystemWorkVM>(FileSystemWorkVM::class.java)
+        statusFileProcess = fileSystemWorkVM.getStatusData()
+        statusFileProcess.observe(this, Observer<Boolean> { isStarted ->
+            if(isStarted == true){
+                startFileProcessAnimation()
+            } else{
+                stopFileProcessAnimation()
+            }
+        })
 
         saveFileWithResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 lifecycleScope.launch {
-                    startLoadingAnimation()
+                    startFileProcessAnimation()
                     lifecycleScope.launch {
                         saveDataToFile(
                             result.data?.data!!,
                             editText.text.toString()
                         )
                     }.join()
-                    stopLoadingAnimation()
+                    stopFileProcessAnimation()
                     Toast
                         .makeText(context, "Файл сохранен", Toast.LENGTH_SHORT)
                         .show()
@@ -63,11 +76,7 @@ class MainFragment : Fragment() {
 
             if (result.resultCode == Activity.RESULT_OK) {
                 lifecycleScope.launch {
-                    startLoadingAnimation()
-                    lifecycleScope.launch {
-                        textView.text = getDataFromFile(result.data?.data!!)
-                    }.join()
-                    stopLoadingAnimation()
+                    fileSystemWorkVM.getDataFromFileAsync(requireContext(), result.data?.data!!)
                 }
             } else {
                 Toast
@@ -150,7 +159,7 @@ class MainFragment : Fragment() {
         data.await()
     }
 
-    private fun startLoadingAnimation() {
+    private fun startFileProcessAnimation() {
         progressBar.visibility = View.VISIBLE
 
         val rotateAnimation = RotateAnimation(
@@ -168,7 +177,7 @@ class MainFragment : Fragment() {
         progressBar.startAnimation(rotateAnimation)
     }
 
-    private fun stopLoadingAnimation() {
+    private fun stopFileProcessAnimation() {
         progressBar.clearAnimation()
         progressBar.visibility = View.GONE
     }
