@@ -12,12 +12,20 @@ import java.io.InputStreamReader
 
 class FileSystemWorkVM : ViewModel() {
     private var isStarted: MutableLiveData<Boolean>? = null
+    private var dataForScreen: MutableLiveData<String>? = null
 
     fun getStatusData(): LiveData<Boolean>{
         if(isStarted == null){
             isStarted = MutableLiveData(false)
         }
         return isStarted as LiveData<Boolean>
+    }
+
+    fun getFileData(): LiveData<String>{
+        if(dataForScreen == null){
+            dataForScreen = MutableLiveData()
+        }
+        return dataForScreen as LiveData<String>
     }
 
     suspend fun getDataFromFileAsync(context: Context, uri: Uri){
@@ -32,11 +40,11 @@ class FileSystemWorkVM : ViewModel() {
                 }.also { line = it } != null) {
                 stringBuilder.append(line)
             }
-            delay(10000L) //TODO: delete it in release
+           // delay(10000L) //TODO: delete it in release
             isStarted?.postValue(false)
             stringBuilder.toString()
 
         }
-        data.await()
+        dataForScreen?.postValue(data.await())
     }
 }

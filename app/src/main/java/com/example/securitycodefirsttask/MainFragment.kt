@@ -30,14 +30,14 @@ class MainFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var scrollTextView: ScrollView
 
-    private lateinit var fileSystemWorkVM: FileSystemWorkVM
-    private lateinit var statusFileProcess: LiveData<Boolean>
+    //private lateinit var fileSystemWorkVM: FileSystemWorkVM
+    //private lateinit var statusFileProcess: LiveData<Boolean>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fileSystemWorkVM = ViewModelProvider(this).get<FileSystemWorkVM>(FileSystemWorkVM::class.java)
-        statusFileProcess = fileSystemWorkVM.getStatusData()
+        val fileSystemWorkVM: FileSystemWorkVM = ViewModelProvider(this).get<FileSystemWorkVM>(FileSystemWorkVM::class.java)
+        val statusFileProcess: LiveData<Boolean> = fileSystemWorkVM.getStatusData()
         statusFileProcess.observe(this, Observer<Boolean> { isStarted ->
             if(isStarted == true){
                 startFileProcessAnimation()
@@ -45,6 +45,11 @@ class MainFragment : Fragment() {
                 stopFileProcessAnimation()
             }
         })
+
+        val fileData: LiveData<String> = fileSystemWorkVM.getFileData()
+        fileData.observe(this, Observer<String>{data-> textView.text = data })
+
+
 
         saveFileWithResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
