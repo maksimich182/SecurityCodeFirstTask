@@ -14,22 +14,22 @@ class FileSystemWorkVM : ViewModel() {
     private var isStarted: MutableLiveData<Boolean>? = null
     private var dataForScreen: MutableLiveData<String>? = null
 
-    fun getStatusData(): LiveData<Boolean>{
-        if(isStarted == null){
+    fun getStatusData(): LiveData<Boolean> {
+        if (isStarted == null) {
             isStarted = MutableLiveData(false)
         }
         return isStarted as LiveData<Boolean>
     }
 
-    fun getFileData(): LiveData<String>{
-        if(dataForScreen == null){
+    fun getFileData(): LiveData<String> {
+        if (dataForScreen == null) {
             dataForScreen = MutableLiveData()
         }
         return dataForScreen as LiveData<String>
     }
 
-    suspend fun getDataFromFileAsync(context: Context, uri: Uri){
-        val data: Deferred<String> = viewModelScope.async {
+    fun getDataFromFileAsync(context: Context, uri: Uri) =
+        viewModelScope.launch (Dispatchers.IO){
             isStarted?.postValue(true)
             val inputStream = context.contentResolver.openInputStream(uri)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -40,11 +40,22 @@ class FileSystemWorkVM : ViewModel() {
                 }.also { line = it } != null) {
                 stringBuilder.append(line)
             }
-           // delay(10000L) //TODO: delete it in release
+            delay(10000L)
             isStarted?.postValue(false)
-            stringBuilder.toString()
-
+            dataForScreen?.postValue(stringBuilder.toString())
         }
-        dataForScreen?.postValue(data.await())
-    }
+
+
+    fun saveDataToFileAsync(context: Context, data: String, uri: Uri) =
+        viewModelScope.launch(Dispatchers.IO) {
+            isStarted?.postValue(true)
+            val outputStream = context.contentResolver?.openOutputStream(uri)
+            outputStream?.use { stream ->
+                stream.write(data.toByteArray())
+                stream.close()
+            }
+            delay(10000L)
+            isStarted?.postValue(false)
+        }
+
 }
