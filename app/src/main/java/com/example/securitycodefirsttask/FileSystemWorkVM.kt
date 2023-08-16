@@ -29,7 +29,7 @@ class FileSystemWorkVM : ViewModel() {
     }
 
     fun getDataFromFileAsync(context: Context, uri: Uri) =
-        viewModelScope.launch (Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             isStarted?.postValue(true)
             val inputStream = context.contentResolver.openInputStream(uri)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -40,7 +40,6 @@ class FileSystemWorkVM : ViewModel() {
                 }.also { line = it } != null) {
                 stringBuilder.append(line)
             }
-            delay(10000L)
             isStarted?.postValue(false)
             dataForScreen?.postValue(stringBuilder.toString())
         }
@@ -54,8 +53,6 @@ class FileSystemWorkVM : ViewModel() {
                 stream.write(data.toByteArray())
                 stream.close()
             }
-            delay(10000L)
             isStarted?.postValue(false)
         }
-
 }

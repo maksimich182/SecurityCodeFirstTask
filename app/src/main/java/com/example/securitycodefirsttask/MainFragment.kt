@@ -22,6 +22,10 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class MainFragment : Fragment() {
+    private val IS_EDITING_KEY: String = "isEditingKey"
+    private val TEXT_IN_EDIT_VIEW_KEY: String = "textInEditViewKey"
+    private var isEditing: Boolean = true
+
     private lateinit var saveFileWithResult: ActivityResultLauncher<Intent>
     private lateinit var openFileWithResult: ActivityResultLauncher<Intent>
 
@@ -45,7 +49,7 @@ class MainFragment : Fragment() {
         })
 
         val fileData: LiveData<String> = fileSystemWorkVM.getFileData()
-        fileData.observe(this, Observer{ data -> textView.text = data })
+        fileData.observe(this, Observer { data -> textView.text = data })
 
         saveFileWithResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -98,6 +102,20 @@ class MainFragment : Fragment() {
         scrollTextView = view.findViewById<ScrollView>(R.id.scroll_text_view)
         progressBar = view.findViewById(R.id.progressBar)
 
+        isEditing = savedInstanceState?.getBoolean(IS_EDITING_KEY, true) ?: true
+        if (isEditing) {
+            editText.visibility = View.VISIBLE
+            editText.setText(
+                savedInstanceState
+                    ?.getString(TEXT_IN_EDIT_VIEW_KEY, "")
+            )
+            scrollTextView.visibility = View.GONE
+        } else {
+            scrollTextView.visibility = View.VISIBLE
+            textView.visibility = View.VISIBLE
+            editText.visibility = View.GONE
+        }
+
         saveBtn.setOnClickListener {
             val intent = Intent().setAction(Intent.ACTION_CREATE_DOCUMENT)
             intent.type = "text/plain"
@@ -108,6 +126,7 @@ class MainFragment : Fragment() {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.type = "text/plain"
             openFileWithResult.launch(intent)
+            isEditing = false
             editText.visibility = View.GONE
             scrollTextView.visibility = View.VISIBLE
             textView.visibility = View.VISIBLE
@@ -121,6 +140,7 @@ class MainFragment : Fragment() {
                         .setMessage("Текущий файл не будет сохранен")
                         .setPositiveButton("Продолжить") { _, _ ->
                             editText.setText("")
+                            isEditing = true
                         }
                         .setNegativeButton("Отмена") { _, _ -> }
                         .create()
@@ -130,8 +150,15 @@ class MainFragment : Fragment() {
                 scrollTextView.visibility = View.GONE
                 editText.visibility = View.VISIBLE
                 editText.setText("")
+                isEditing = true
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(IS_EDITING_KEY, isEditing)
+        outState.putString(TEXT_IN_EDIT_VIEW_KEY, editText.text.toString())
     }
 
     private fun startFileProcessAnimation() {
